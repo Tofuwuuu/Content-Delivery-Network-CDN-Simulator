@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  origin:
+    build:
+      context: ../backend
+      dockerfile: origin.Dockerfile
+    ports:
+      - "8080:8080"
+
+  edge_a:
+    build:
+      context: ../backend
+      dockerfile: edge.Dockerfile
+    environment:
+      - EDGE_NAME=edge_a
+      - REGION=US
+      - ORIGIN_URL=http://origin:8080
+    ports:
+      - "8081:8081"
+
+  edge_b:
+    build:
+      context: ../backend
+      dockerfile: edge.Dockerfile
+    environment:
+      - EDGE_NAME=edge_b
+      - REGION=EU
+      - ORIGIN_URL=http://origin:8080
+    ports:
+      - "8083:8081"
+
+  router:
+    build:
+      context: ../backend/router
+      dockerfile: router.Dockerfile
+    environment:
+      - EDGE_A_URL=http://edge_a:8081
+      - EDGE_B_URL=http://edge_b:8081
+    ports:
+      - "8082:8082"
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: frontend.Dockerfile
+    environment:
+      - REACT_APP_ORIGIN_URL=http://localhost:8080
+      - REACT_APP_ROUTER_URL=http://localhost:8082
+      - REACT_APP_EDGE_A_URL=http://localhost:8081
+      - REACT_APP_EDGE_B_URL=http://localhost:8083
+    ports:
+      - "3000:80"
+
+
